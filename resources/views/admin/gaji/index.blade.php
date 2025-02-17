@@ -12,7 +12,7 @@
             <p>berikut perhitungan secara sistem, dan apabila terdapat lemburan boleh untuk di ajukan dan di approve oleh kepala toko masing - masing</p>
         </div>
         <a href="{{ route('gaji.print') }}" class="btn btn-secondary btn-sm">
-            cetak slip <i class="fas fa-arrow-down fa-sm"></i>
+            salary slip <i class="fas fa-arrow-down fa-sm"></i>
         </a>
     </div>
 

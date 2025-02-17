@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Outlets;
 use App\Models\Presence;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class DahsboardMasterController extends Controller
 {
@@ -23,6 +23,8 @@ class DahsboardMasterController extends Controller
             ->whereYear('pulang', $currentYear)
             ->count();
 
-        return view('master.dashboard.index', compact('users', 'presensiBulanIni', 'jumlahPresensiBulanIni'));
+        $totalOutlet = Outlets::count();
+
+        return view('master.dashboard.index', compact('users', 'presensiBulanIni', 'jumlahPresensiBulanIni', 'totalOutlet'));
     }
 }

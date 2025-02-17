@@ -106,6 +106,7 @@
                                             <div class="form-group">
                                                 <label for="status">Status</label>
                                                 <select class="form-control" name="status" id="status">
+                                                    <option value="absent" {{ $presence->status == 'absent' ? 'selected' : '' }}>Absent</option>
                                                     <option value="masuk" {{ $presence->status == 'masuk' ? 'selected' : '' }}>Masuk</option>
                                                     <option value="izin" {{ $presence->status == 'izin' ? 'selected' : '' }}>Izin</option>
                                                     <option value="sakit" {{ $presence->status == 'sakit' ? 'selected' : '' }}>Sakit</option>
