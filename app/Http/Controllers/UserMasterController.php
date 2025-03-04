@@ -53,6 +53,8 @@ class UserMasterController extends Controller
             'role' => 'required|in:master_admin,admin,pegawai',
             'bpjs' => 'nullable|string|max:15',
             'ketenagakerjaan' => 'nullable|string|max:15',
+            'alamat' => 'required|string|max:255',
+            'ptkp' => 'required|string|max:20',
         ]);
     
         // Menyimpan foto jika ada
@@ -68,6 +70,7 @@ class UserMasterController extends Controller
             'outlet_cabang' => $request->outlet_cabang,
             'duration' => $request->duration,
             'email' => $request->email,
+            'alamat' => $request->alamat,
             'password' => Hash::make($request->password),
             'nik' => $request->nik,
             'npwp' => $request->npwp,
@@ -75,6 +78,7 @@ class UserMasterController extends Controller
             'role' => $request->role,
             'bpjs' => $request->bpjs,
             'ketenagakerjaan' => $request->ketenagakerjaan,
+            'ptkp' => $request->ptkp,
         ]);
     
         // Redirect kembali ke halaman index dengan pesan sukses
@@ -94,6 +98,8 @@ class UserMasterController extends Controller
             'bpjs' => 'nullable|string|max:15',
             'ketenagakerjaan' => 'nullable|string|max:15',
             'photo' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'alamat' => 'required|string|max:255',
+            'ptkp' => 'required|string|max:20',
         ]);
 
         $user = User::findOrFail($id);
@@ -111,10 +117,12 @@ class UserMasterController extends Controller
             'outlet_cabang' => $request->outlet_cabang,
             'duration' => $request->duration,
             'email' => $request->email,
+            'alamat' => $request->alamat,
             'nik' => $request->nik,
             'npwp' => $request->npwp,
             'bpjs' => $request->bpjs,
             'ketenagakerjaan' => $request->ketenagakerjaan,
+            'ptkp' => $request->ptkp,
         ]);
 
         return redirect()->route('user.index')->with('success', 'User berhasil diperbarui.');

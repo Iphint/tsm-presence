@@ -29,7 +29,9 @@ class User extends Authenticatable
         'photo',
         'role',
         'bpjs',
-        'ketenagakerjaan'
+        'ketenagakerjaan',
+        'alamat',
+        'ptkp',
     ];
 
     /**

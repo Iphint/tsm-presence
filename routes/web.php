@@ -12,6 +12,7 @@ use App\Http\Controllers\LemburanAdminController;
 use App\Http\Controllers\LemburanPegawaiController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\OutletMasterController;
+use App\Http\Controllers\PajakController;
 use App\Http\Controllers\PengajuanPegawaiController;
 use App\Http\Controllers\PresenceAdminController;
 use App\Http\Controllers\PresenceMasterController;
@@ -44,6 +45,8 @@ Route::middleware(['auth', 'role:master_admin'])->group(function () {
     Route::resource('jabatan', JabatanMasterController::class);
     Route::resource('presence', PresenceMasterController::class);
     Route::resource('salary', GajiMasterController::class);
+    Route::resource('pajak', PajakController::class);
+    Route::get('/export-excel', [PajakController::class, 'exportExcel'])->name('pajak.export-excel');
     Route::post('/presence/verify', [PresenceMasterController::class, 'verifyPresence'])->name('presence.verify');
 });
 
@@ -74,6 +77,6 @@ Route::middleware(['auth'])->group(function () {
     // Arrival specific routes
     Route::get('/presence-pegawai/create', [PresencePegawaiController::class, 'create'])->name('presence.create');
     Route::post('/presence-pegawai/mark-arrival', [PresencePegawaiController::class, 'markArrival'])->name('presence.mark-arrival');
-    Route::post('/presence-pegawai/mark-departure', [PresencePegawaiController::class, 'markDeparture'])->name('presence.mark-departure');    
+    Route::post('/presence-pegawai/mark-departure', [PresencePegawaiController::class, 'markDeparture'])->name('presence.mark-departure');
 });
 Route::get('gaji/print', [GajiPegawaiController::class, 'print'])->name('gaji.print');

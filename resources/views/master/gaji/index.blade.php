@@ -7,15 +7,15 @@
     <!-- Page Heading -->
     <div class="d-flex justify-content-between align-items-center my-2">
         <h1 class="h3 mb-2 text-gray-800">Data Salary Karyawan</h1>
-        <form method="GET" action="{{ route('salary.index') }}">
+        <form method="GET" action="{{ route('salary.index') }}" class="d-flex, flex-column">
             <label for="bulan">Pilih Bulan:</label>
             <input type="month" id="bulan" name="bulan" value="{{ $bulan }}" class="form-control d-inline-block" style="width: 200px;">
+            <input type="text" id="outlet" name="outlet" placeholder="Cari Outlet" value="{{ $outlet }}" class="form-control d-inline-block" style="width: 200px;">
+
             <button type="submit" class="btn btn-primary">Cari</button>
         </form>
     </div>
-
     <h5 class="text-muted">Periode: {{ \Carbon\Carbon::parse($bulan)->translatedFormat('F Y') }}</h5>
-
     <div class="table-responsive">
         <table class="table table-striped table-bordered text-nowrap">
             <thead class="thead-dark">

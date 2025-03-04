@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Log;
 class GajiPegawaiController extends Controller
 {
     private const TUNJANGAN_PER_TAHUN = 50000;
-    private const MAX_TAHUN = 3;
 
     public function index()
     {
@@ -23,7 +22,6 @@ class GajiPegawaiController extends Controller
         $endOfMonth = Carbon::now()->endOfMonth();
         $jabatan = Jabatan::where('nama_jabatan', $user->posisi)->first();
         $gajiPokok = $jabatan ? $jabatan->gaji_pokok : 0;
-
         $gajiHarian = $gajiPokok / 26;
 
         $bulanSekarang = Carbon::now()->format('Y-m');
@@ -32,8 +30,12 @@ class GajiPegawaiController extends Controller
             ->first();
 
         $tunjanganJabatan = $kinerja ? $kinerja->tunjangan_jabatan : 0;
-        $tunjanganMasaKerja = $kinerja ? $kinerja->tunjangan_masa_kerja : 0;
 
+        // Hitung masa kerja dan tunjangan masa kerja
+        $masaKerjaTahun = $this->hitungMasaKerjaTahun($user->duration);
+        $tunjanganMasaKerja = $this->hitungTunjanganMasaKerja($masaKerjaTahun);
+
+        // Hitung jumlah hari kerja
         $workedDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->selectRaw('DATE(pulang) as work_day')
@@ -53,6 +55,7 @@ class GajiPegawaiController extends Controller
             ->selectRaw('DATE(pulang) as work_day')
             ->distinct()
             ->count();
+
         $absentDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->where('status', 'absent')
@@ -60,10 +63,10 @@ class GajiPegawaiController extends Controller
             ->distinct()
             ->count();
 
+        // Hitung gaji pokok berdasarkan hari kerja
         $salary = $workedDays * $gajiHarian;
-        $masaKerjaTahun = $this->hitungMasaKerjaTahun($user->duration);
 
-        // Get approved overtime records
+        // Hitung lembur
         $lemburan = Lembur::where('user_id', $user->id)
             ->whereMonth('tanggal', $startOfMonth->month)
             ->whereYear('tanggal', $startOfMonth->year)
@@ -84,8 +87,11 @@ class GajiPegawaiController extends Controller
         }
 
         $totalGajiLembur = $lemburan->sum('salary_lembur');
-        $totalGaji = $salary;
 
+        // Hitung total gaji termasuk tunjangan masa kerja
+        $totalGaji = $salary + $tunjanganMasaKerja;
+
+        // Simpan ke tabel kinerja
         $this->simpanKinerjaBulanan($user, $jabatan, $tunjanganMasaKerja);
 
         return view('pegawai.gaji.index', compact(
@@ -101,7 +107,30 @@ class GajiPegawaiController extends Controller
             'absentDays'
         ));
     }
+    private function hitungMasaKerjaTahun($duration)
+    {
+        if (empty($duration)) {
+            return 0;
+        }
 
+        try {
+            $tanggalMulai = Carbon::parse($duration)->startOfDay();
+            $tanggalSekarang = Carbon::now()->startOfDay();
+
+            $bulanKerja = $tanggalMulai->diffInMonths($tanggalSekarang);
+            $tahunKerja = floor($bulanKerja / 12);
+
+            return $tahunKerja;
+        } catch (\Throwable $th) {
+            Log::error("Gagal mem-parse tanggal mulai kerja: " . $duration . " - " . $th->getMessage());
+            return 0;
+        }
+    }
+    private function hitungTunjanganMasaKerja($tahun)
+    {
+        $tahunPenuh = min(floor($tahun), 3);
+        return $tahunPenuh * self::TUNJANGAN_PER_TAHUN;
+    }
     public function print()
     {
         $user = Auth::user();
@@ -174,32 +203,6 @@ class GajiPegawaiController extends Controller
             ->distinct()
             ->count();
     }
-    private function hitungMasaKerjaTahun($duration)
-    {
-        if (empty($duration)) {
-            return 0;
-        }
-
-        try {
-            $tanggalMulai = Carbon::parse($duration);
-            $tanggalSekarang = Carbon::now();
-
-            $tanggalMulai->startOfDay();
-            $tanggalSekarang->startOfDay();
-
-            return $tanggalMulai->diffInYears($tanggalSekarang);
-        } catch (\Throwable $th) {
-            Log::error("Gagal mem-parse tanggal mulai kerja: " . $duration . " - " . $th->getMessage());
-            return 0;
-        }
-    }
-
-    private function hitungTunjanganMasaKerja($tahun)
-    {
-        $tahunPenuh = min(floor($tahun), self::MAX_TAHUN);
-        return $tahunPenuh * self::TUNJANGAN_PER_TAHUN;
-    }
-
     private function simpanKinerjaBulanan($user, $jabatan, $tunjanganMasaKerja)
     {
         $bulan = Carbon::now()->format('Y-m');

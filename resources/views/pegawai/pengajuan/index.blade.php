@@ -8,7 +8,6 @@
     <!-- Page Heading -->
     <div class="d-flex justify-content-between my-2">
         <h1 class="h3 mb-2 text-gray-800">Pengajuan Dispensasi</h1>
-        <a href="{{ route('pengajuan-pegawai.create') }}" class="btn btn-outline-secondary">Daily check</a>
     </div>
     <form action="{{ route('pengajuan-pegawai.store') }}" method="POST" enctype="multipart/form-data">
         @csrf

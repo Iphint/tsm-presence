@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class GajiAdminController extends Controller
 {
     private const TUNJANGAN_PER_TAHUN = 50000;
-    private const GAJI_HARIAN = 50000;
+
     public function index()
     {
         $user = Auth::user();
@@ -23,7 +23,6 @@ class GajiAdminController extends Controller
         $endOfMonth = Carbon::now()->endOfMonth();
         $jabatan = Jabatan::where('nama_jabatan', $user->posisi)->first();
         $gajiPokok = $jabatan ? $jabatan->gaji_pokok : 0;
-
         $gajiHarian = $gajiPokok / 26;
 
         $bulanSekarang = Carbon::now()->format('Y-m');
@@ -32,8 +31,12 @@ class GajiAdminController extends Controller
             ->first();
 
         $tunjanganJabatan = $kinerja ? $kinerja->tunjangan_jabatan : 0;
-        $tunjanganMasaKerja = $kinerja ? $kinerja->tunjangan_masa_kerja : 0;
 
+        // Hitung masa kerja dan tunjangan masa kerja
+        $masaKerjaTahun = $this->hitungMasaKerjaTahun($user->duration);
+        $tunjanganMasaKerja = $this->hitungTunjanganMasaKerja($masaKerjaTahun);
+
+        // Hitung jumlah hari kerja
         $workedDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->selectRaw('DATE(pulang) as work_day')
@@ -53,6 +56,7 @@ class GajiAdminController extends Controller
             ->selectRaw('DATE(pulang) as work_day')
             ->distinct()
             ->count();
+
         $absentDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->where('status', 'absent')
@@ -60,10 +64,10 @@ class GajiAdminController extends Controller
             ->distinct()
             ->count();
 
+        // Hitung gaji pokok berdasarkan hari kerja
         $salary = $workedDays * $gajiHarian;
-        $masaKerjaTahun = $this->hitungMasaKerjaTahun($user->duration);
 
-        // Get approved overtime records
+        // Hitung lembur
         $lemburan = Lembur::where('user_id', $user->id)
             ->whereMonth('tanggal', $startOfMonth->month)
             ->whereYear('tanggal', $startOfMonth->year)
@@ -84,8 +88,11 @@ class GajiAdminController extends Controller
         }
 
         $totalGajiLembur = $lemburan->sum('salary_lembur');
-        $totalGaji = $salary;
 
+        // Hitung total gaji termasuk tunjangan masa kerja
+        $totalGaji = $salary + $tunjanganMasaKerja;
+
+        // Simpan ke tabel kinerja
         $this->simpanKinerjaBulanan($user, $jabatan, $tunjanganMasaKerja);
 
         return view('pegawai.gaji.index', compact(
@@ -101,10 +108,6 @@ class GajiAdminController extends Controller
             'absentDays'
         ));
     }
-    public function print()
-    {
-        return view('admin.gaji.print');
-    }
     private function hitungMasaKerjaTahun($duration)
     {
         if (empty($duration)) {
@@ -112,25 +115,27 @@ class GajiAdminController extends Controller
         }
 
         try {
-            $tanggalMulai = Carbon::parse($duration);
-            $tanggalSekarang = Carbon::now();
+            $tanggalMulai = Carbon::parse($duration)->startOfDay();
+            $tanggalSekarang = Carbon::now()->startOfDay();
 
-            $tanggalMulai->startOfDay();
-            $tanggalSekarang->startOfDay();
+            $bulanKerja = $tanggalMulai->diffInMonths($tanggalSekarang);
+            $tahunKerja = floor($bulanKerja / 12);
 
-            return $tanggalMulai->diffInYears($tanggalSekarang);
+            return $tahunKerja;
         } catch (\Throwable $th) {
             Log::error("Gagal mem-parse tanggal mulai kerja: " . $duration . " - " . $th->getMessage());
             return 0;
         }
     }
-
     private function hitungTunjanganMasaKerja($tahun)
     {
-        $tahunPenuh = floor($tahun);
+        $tahunPenuh = min(floor($tahun), 3);
         return $tahunPenuh * self::TUNJANGAN_PER_TAHUN;
     }
-
+    public function print()
+    {
+        return view('admin.gaji.print');
+    }
     private function simpanKinerjaBulanan($user, $jabatan, $tunjanganMasaKerja)
     {
         $bulan = Carbon::now()->format('Y-m');

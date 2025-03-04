@@ -73,9 +73,25 @@
         </div>
 
         <div class="mb-3">
+            <label for="alamat" class="form-label">Alamat</label>
+            <input type="text" name="alamat" id="alamat" class="form-control" value="{{ old('alamat') }}">
+            @error('alamat')
+            <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
             <label for="nik" class="form-label">NIK</label>
             <input type="text" name="nik" id="nik" class="form-control" value="{{ old('nik') }}" required>
             @error('nik')
+            <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="npwp" class="form-label">NPWP</label>
+            <input type="text" name="npwp" id="npwp" class="form-control" value="{{ old('npwp') }}">
+            @error('npwp')
             <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>
@@ -97,14 +113,6 @@
         </div>
 
         <div class="mb-3">
-            <label for="npwp" class="form-label">NPWP</label>
-            <input type="text" name="npwp" id="npwp" class="form-control" value="{{ old('npwp') }}">
-            @error('npwp')
-            <div class="text-danger">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <div class="mb-3">
             <label for="role" class="form-label">Role</label>
             <select name="role" id="role" class="form-control">
                 <option value="admin">Admin</option>
@@ -113,6 +121,30 @@
                 <option value="pegawai">Pegawai</option>
             </select>
             @error('role')
+            <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="ptkp" class="form-label">PTKP</label>
+            <select name="ptkp" id="ptkp" class="form-control">
+                <option value="K/1">K/1</option>
+                <option value="K/2">K/2</option>
+                <option value="K/3">K/3</option>
+                <option value="K/4">K/4</option>
+                <option value="K/5">K/5</option>
+                <option value="K/6">K/6</option>
+                <option value="K/7">K/7</option>
+                <option value="TK/0">TK/0</option>
+                <option value="TK/1">TK/1</option>
+                <option value="TK/2">TK/2</option>
+                <option value="TK/3">TK/3</option>
+                <option value="TK/4">TK/4</option>
+                <option value="TK/5">TK/5</option>
+                <option value="TK/6">TK/6</option>
+                <option value="TK/7">TK/7</option>
+            </select>
+            @error('ptkp')
             <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>

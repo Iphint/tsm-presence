@@ -42,6 +42,12 @@
             <span>Salary Karyawan</span>
         </a>
     </li>
+    <li class="nav-item {{ request()->routeIs('pajak.index') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('pajak.index') }}">
+            <i class="fas fa-fw fa-file-invoice"></i>
+            <span>Cetak Faktur Pajak</span>
+        </a>
+    </li>
     @endif
 
     @if(Auth::user()->role == 'magang')

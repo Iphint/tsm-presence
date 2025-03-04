@@ -19,11 +19,18 @@ class GajiMasterController extends Controller
     public function index(Request $request)
     {
         $bulan = $request->input('bulan', Carbon::now()->format('Y-m'));
+        $outlet = $request->input('outlet');
 
         $startOfMonth = Carbon::parse($bulan)->startOfMonth();
         $endOfMonth = Carbon::parse($bulan)->endOfMonth();
 
-        $karyawans = User::where('role', '!=', 'master_admin')->get();
+        // Ambil karyawan yang bukan master_admin dan sesuai outlet (jika ada filter)
+        $karyawans = User::where('role', '!=', 'master_admin')
+            ->when($outlet, function ($query) use ($outlet) {
+                return $query->where('outlet_cabang', 'LIKE', "%$outlet%");
+            })
+            ->get();
+
         $dataGaji = [];
 
         foreach ($karyawans as $karyawan) {
@@ -96,6 +103,7 @@ class GajiMasterController extends Controller
             $dataGaji[] = [
                 'id' => $karyawan->id,
                 'nama' => $karyawan->name,
+                'outlet_cabang' => $karyawan->outlet_cabang,
                 'gaji_pokok' => $gajiPokok,
                 'gaji_harian' => $gajiHarian,
                 'worked_days' => $workedDays,
@@ -114,8 +122,9 @@ class GajiMasterController extends Controller
             ];
         }
 
-        return view('master.gaji.index', compact('dataGaji', 'bulan'));
+        return view('master.gaji.index', compact('dataGaji', 'bulan', 'outlet'));
     }
+
     public function show($id, Request $request)
     {
         // Ambil bulan dari request atau gunakan bulan saat ini

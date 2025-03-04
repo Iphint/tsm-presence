@@ -13,7 +13,7 @@ class PresenceMasterController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Presence::with('user');
+        $query = Presence::with('user')->orderBy('created_at', 'desc');
 
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
