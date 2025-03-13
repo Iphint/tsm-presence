@@ -37,6 +37,8 @@
                     <th style="width: 10%;">BPJS Kesehatan</th>
                     <th style="width: 10%;">BPJS Ketenagakerjaan</th>
                     <th style="width: 10%;">Denda Absent</th>
+                    <th style="width: 10%;">Total Jam Kerja</th>
+                    <th style="width: 10%;">Potongan Salary Dari Jam Kerja</th>
                     <th style="width: 20%;">Net Salary</th>
                     <th style="width: 20%;">Action</th>
                 </tr>
@@ -62,6 +64,8 @@
                     <td class="font-weight-bold">Rp {{ number_format($gaji['bpjs'], 0, ',', '.') }}</td>
                     <td class="font-weight-bold">Rp {{ number_format($gaji['ketenagakerjaan'], 0, ',', '.') }}</td>
                     <td class="font-weight-bold">Rp {{ number_format($gaji['denda_absent'], 0, ',', '.') }}</td>
+                    <td>{{ $gaji['total_work_time_month'] }}</td>
+                    <td class="font-weight-bold">Rp {{ number_format($gaji['potongan'], 0, ',', '.') }}</td>
                     <td class="font-weight-bold">Rp {{ number_format($gaji['total_gaji'], 0, ',', '.') }}</td>
                     <td style="text-align: center;">
                         <!-- Tombol Lihat Detail -->
@@ -73,15 +77,6 @@
                         <a href="{{ route('salary.edit', $gaji['id']) }}" class="btn btn-warning btn-sm mx-1" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
-
-                        <!-- Tombol Hapus dengan Form -->
-                        <form action="{{ route('salary.destroy', $gaji['id']) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm mx-1" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
                     </td>
                 </tr>
                 @endforeach

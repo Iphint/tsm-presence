@@ -97,6 +97,14 @@
         </div>
 
         <div class="mb-3">
+            <label for="no_rek" class="form-label">No rekening</label>
+            <input type="text" name="no_rek" id="no_rek" class="form-control" value="{{ old('no_rek') }}">
+            @error('no_rek')
+            <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
             <label for="bpjs" class="form-label">BPJS Kesehatan</label>
             <input type="text" name="bpjs" id="bpjs" class="form-control" value="{{ old('bpjs') }}">
             @error('bpjs')
@@ -117,7 +125,6 @@
             <select name="role" id="role" class="form-control">
                 <option value="admin">Admin</option>
                 <option value="master_admin">Master Admin</option>
-                <option value="magang">Magang</option>
                 <option value="pegawai">Pegawai</option>
             </select>
             @error('role')

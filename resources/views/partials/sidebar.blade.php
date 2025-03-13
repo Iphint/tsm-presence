@@ -50,21 +50,6 @@
     </li>
     @endif
 
-    @if(Auth::user()->role == 'magang')
-    <li class="nav-item {{ request()->routeIs('dashboard.index') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('dashboard.index') }}">
-            <i class="fas fa-home"></i>
-            <span>Dashboard</span>
-        </a>
-    </li>
-    <li class="nav-item {{ request()->routeIs('presence.index') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('presence.index') }}">
-            <i class="fas fa-fw fa-clock"></i>
-            <span>Presensi</span>
-        </a>
-    </li>
-    @endif
-
     @if(Auth::user()->role == 'pegawai')
     <li class="nav-item {{ request()->routeIs('dashboard-pegawai.index') ? 'active' : '' }}">
         <a class="nav-link" href="{{ route('dashboard-pegawai.index') }}">
@@ -92,7 +77,8 @@
     </li>
     <li class="nav-item {{ request()->routeIs('pengajuan-pegawai.index') ? 'active' : '' }}">
         <a class="nav-link" href="{{ route('pengajuan-pegawai.index') }}">
-            <i class="fas fa-fw fa-calendar-alt"></i> <span>Pengajuan</span>
+            <i class="fas fa-fw fa-calendar-alt"></i>
+            <span>Pengajuan</span>
         </a>
     </li>
     @endif

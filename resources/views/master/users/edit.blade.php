@@ -5,6 +5,24 @@
 @section('content')
 <div class="container">
     <h1 class="h3 mb-4 text-gray-800">Edit User</h1>
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error!</strong> {{ session('error') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    @endif
+
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>Success!</strong> {{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    @endif
+
     <form action="{{ route('user.update', $user->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -64,6 +82,14 @@
         </div>
 
         <div class="mb-3">
+            <label for="no_rek" class="form-label">No rekening</label>
+            <input type="text" name="no_rek" id="no_rek" class="form-control" value="{{ old('npwp', $user->no_rek) }}">
+            @error('no_rek')
+            <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
             <label for="bpjs" class="form-label">BPJS</label>
             <input type="text" name="bpjs" id="bpjs" class="form-control" value="{{ old('bpjs', $user->bpjs) }}">
         </div>
@@ -75,24 +101,25 @@
 
         <div class="mb-3">
             <label for="ptkp" class="form-label">PTKP</label>
-            <select name="ptkp" id="ptkp" class="form-control" value="{{ old('ptkp', $user->ptkp) }}}">
-                <option value="K/1">K/1</option>
-                <option value="K/2">K/2</option>
-                <option value="K/3">K/3</option>
-                <option value="K/4">K/4</option>
-                <option value="K/5">K/5</option>
-                <option value="K/6">K/6</option>
-                <option value="K/7">K/7</option>
-                <option value="TK/0">TK/0</option>
-                <option value="TK/1">TK/1</option>
-                <option value="TK/2">TK/2</option>
-                <option value="TK/3">TK/3</option>
-                <option value="TK/4">TK/4</option>
-                <option value="TK/5">TK/5</option>
-                <option value="TK/6">TK/6</option>
-                <option value="TK/7">TK/7</option>
+            <select name="ptkp" id="ptkp" class="form-control" required>
+                <option value="">-- Pilih PTKP --</option>
+                @php
+                $ptkpOptions = ["K/1", "K/2", "K/3", "K/4", "K/5", "K/6", "K/7", "TK/0", "TK/1", "TK/2", "TK/3", "TK/4", "TK/5", "TK/6", "TK/7"];
+                @endphp
+                @foreach ($ptkpOptions as $option)
+                <option value="{{ $option }}" {{ old('ptkp', $user->ptkp) == $option ? 'selected' : '' }}>{{ $option }}</option>
+                @endforeach
             </select>
-            @error('ptkp')
+        </div>
+
+        <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <select name="role" id="role" class="form-control" required>
+                <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                <option value="master_admin" {{ old('role', $user->role) == 'master_admin' ? 'selected' : '' }}>Master Admin</option>
+                <option value="pegawai" {{ old('role', $user->role) == 'pegawai' ? 'selected' : '' }}>Pegawai</option>
+            </select>
+            @error('role')
             <div class="text-danger">{{ $message }}</div>
             @enderror
         </div>

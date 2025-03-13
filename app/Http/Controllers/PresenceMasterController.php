@@ -13,8 +13,12 @@ class PresenceMasterController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Presence::with('user')->orderBy('created_at', 'desc');
-
+        $query = Presence::with('user')
+            ->whereHas('user', function ($q) {
+                $q->where('role', '!=', 'master_admin');
+            })
+            ->orderBy('created_at', 'desc');
+    
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->whereHas('user', function ($q) use ($search) {
@@ -23,18 +27,52 @@ class PresenceMasterController extends Controller
                     ->orWhere('outlet_cabang', 'like', '%' . $search . '%');
             });
         }
-
+    
         if ($request->has('date') && $request->date != '') {
             $date = $request->date;
             $query->whereDate('created_at', '=', $date);
         }
-
+    
         $presences = $query->paginate(50);
-
+    
+        // **Tambahkan perhitungan total jam kerja & shift kerja**
+        foreach ($presences as $presence) {
+            $datang = $presence->datang ? Carbon::parse($presence->datang) : null;
+            $pulang = $presence->pulang ? Carbon::parse($presence->pulang) : null;
+            
+            // **Hitung total menit kerja**
+            if ($datang && $pulang) {
+                $totalMinutes = $datang->diffInMinutes($pulang);
+            } elseif ($datang) {
+                $totalMinutes = 8 * 60;
+            } else {
+                $totalMinutes = 0;
+            }
+            $totalMinutes = min($totalMinutes, 8 * 60);
+            $totalHours = intdiv($totalMinutes, 60);
+            $totalRemainingMinutes = $totalMinutes % 60;
+            $presence->totalWorkTime = "{$totalHours} Jam {$totalRemainingMinutes} Menit";
+    
+            // **Tentukan shift kerja berdasarkan jam datang**
+            if ($datang) {
+                $hour = $datang->hour;
+                if ($hour >= 6 && $hour < 14) {
+                    $shift = "Pagi";
+                } elseif ($hour >= 14 && $hour < 22) {
+                    $shift = "Sore";
+                } else {
+                    $shift = "Tidak Diketahui";
+                }
+            } else {
+                $shift = "Tidak Diketahui";
+            }
+    
+            // Simpan dalam objek presence
+            $presence->shift = $shift;
+        }
+    
         return view('master.presensi.index', compact('presences'));
     }
-
-
     public function update(Request $request, $id)
     {
         $request->validate([

@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 
 
 // Authentication Routes
-Route::get('/login', [LoginController::class, 'index'])->name('login');
+Route::get('/', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 Route::resource('register', RegisterController::class)->only(['index', 'store']);
 Route::post('/logout', function () {
@@ -75,7 +75,7 @@ Route::middleware(['auth', 'role:pegawai'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     // Arrival specific routes
-    Route::get('/presence-pegawai/create', [PresencePegawaiController::class, 'create'])->name('presence.create');
+    Route::get('/presence/create', [PresencePegawaiController::class, 'create'])->name('presence.create');
     Route::post('/presence-pegawai/mark-arrival', [PresencePegawaiController::class, 'markArrival'])->name('presence.mark-arrival');
     Route::post('/presence-pegawai/mark-departure', [PresencePegawaiController::class, 'markDeparture'])->name('presence.mark-departure');
 });

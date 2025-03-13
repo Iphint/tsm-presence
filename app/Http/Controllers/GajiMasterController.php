@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class GajiMasterController extends Controller
 {
     private const TUNJANGAN_PER_TAHUN = 50000;
-    private const MAX_TAHUN = 3;
+    private const MAX_TAHUN = 4;
     public function index(Request $request)
     {
         $bulan = $request->input('bulan', Carbon::now()->format('Y-m'));
@@ -46,6 +46,7 @@ class GajiMasterController extends Controller
 
             $tunjanganJabatan = $kinerja ? $kinerja->tunjangan_jabatan : 0;
             $tunjanganMasaKerja = $kinerja ? $kinerja->tunjangan_masa_kerja : 0;
+            $potongan = $kinerja ? $kinerja->potongan : 0;
 
             $workedDays = Presence::where('user_id', $karyawan->id)
                 ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
@@ -74,6 +75,20 @@ class GajiMasterController extends Controller
                 ->distinct()
                 ->count();
 
+            $totalJamKerja = Presence::where('user_id', $karyawan->id)
+                ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
+                ->get()
+                ->reduce(function ($total, $presence) {
+                    if ($presence->masuk && $presence->pulang) {
+                        $masuk = Carbon::parse($presence->masuk);
+                        $pulang = Carbon::parse($presence->pulang);
+                        $jamKerja = $masuk->diffInHours($pulang);
+                        return $total + $jamKerja;
+                    }
+                    return $total;
+                }, 0);
+
+
             $salary = $workedDays * $gajiHarian;
             $masaKerjaTahun = $this->hitungMasaKerjaTahun($karyawan->duration);
 
@@ -96,9 +111,49 @@ class GajiMasterController extends Controller
                 $totalJamLembur += $jamLembur;
             }
 
+            $presences = Presence::where('user_id', $karyawan->id)
+                ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
+                ->get();
+
+            $totalMinutes = 0;
+
+            foreach ($presences as $presence) {
+                $datang = $presence->datang ? Carbon::parse($presence->datang) : null;
+                $pulang = $presence->pulang ? Carbon::parse($presence->pulang) : null;
+
+                if ($datang && $pulang) {
+                    $dailyMinutes = $datang->diffInMinutes($pulang);
+                } elseif ($datang) {
+                    $dailyMinutes = 8 * 60;
+                } else {
+                    $dailyMinutes = 0;
+                }
+                $dailyMinutes = min($dailyMinutes, 8 * 60);
+                $totalMinutes += $dailyMinutes;
+                if ($datang) {
+                    $hour = $datang->hour;
+                    if ($hour >= 6 && $hour < 14) {
+                        $shift = "Pagi";
+                    } elseif ($hour >= 14 && $hour < 22) {
+                        $shift = "Sore";
+                    } else {
+                        $shift = "Tidak Diketahui";
+                    }
+                } else {
+                    $shift = "Tidak Diketahui";
+                }
+
+                $presence->shift = $shift;
+            }
+
+            // Konversi total menit kerja ke jam dan menit
+            $totalHours = intdiv($totalMinutes, 60);
+            $totalRemainingMinutes = $totalMinutes % 60;
+            $totalWorkTimePerMonth = "{$totalHours} Jam {$totalRemainingMinutes} Menit";
+
             $totalGajiLembur = $lemburan->sum('salary_lembur');
             $dendaAbsent = $absentDays * 50000;
-            $totalGaji = $salary + $tunjanganMasaKerja + $totalGajiLembur + $tunjanganJabatan - $bpjs - $dendaAbsent - $ketenagakerjaan;
+            $totalGaji = $salary + $tunjanganMasaKerja + $totalGajiLembur + $tunjanganJabatan - $bpjs - $dendaAbsent - $ketenagakerjaan - $potongan;
 
             $dataGaji[] = [
                 'id' => $karyawan->id,
@@ -114,6 +169,8 @@ class GajiMasterController extends Controller
                 'tunjangan_masa_kerja' => $tunjanganMasaKerja,
                 'total_jam_lembur' => $totalJamLembur,
                 'total_gaji_lembur' => $totalGajiLembur,
+                'total_work_time_month' => $totalWorkTimePerMonth,
+                'potongan' => $potongan,
                 'total_gaji' => $totalGaji,
                 'bpjs' => $bpjs,
                 'ketenagakerjaan' => $ketenagakerjaan,
@@ -124,7 +181,6 @@ class GajiMasterController extends Controller
 
         return view('master.gaji.index', compact('dataGaji', 'bulan', 'outlet'));
     }
-
     public function show($id, Request $request)
     {
         // Ambil bulan dari request atau gunakan bulan saat ini
@@ -241,12 +297,14 @@ class GajiMasterController extends Controller
         $request->validate([
             'tunjangan_jabatan' => 'nullable|numeric|min:0',
             'tunjangan_masa_kerja' => 'nullable|numeric|min:0',
+            'potongan' => 'nullable|numeric|min:0',
         ]);
 
         $kinerja = Kinerja::findOrFail($id);
         $kinerja->update([
             'tunjangan_jabatan' => $request->tunjangan_jabatan,
             'tunjangan_masa_kerja' => $request->tunjangan_masa_kerja,
+            'potongan' => $request->potongan,
         ]);
 
         return redirect()->route('salary.index')->with('success', 'Tunjangan berhasil diperbarui.');

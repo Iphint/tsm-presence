@@ -49,6 +49,9 @@
                                             Tidak diketahui
                                             @endif
                                         </dd>
+
+                                        <dt>No Rekening</dt>
+                                        <dd>{{ $user->no_rek ?? '-' }}</dd>
                                     </dl>
                                 </div>
 

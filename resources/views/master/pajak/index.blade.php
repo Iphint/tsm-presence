@@ -12,10 +12,9 @@
         <button type="submit" class="btn btn-primary">Cari</button>
     </form>
 </div>
-<a href="{{ route('pajak.export-excel', ['bulan' => request('bulan')]) }}" class="btn btn-success">
+<a href="{{ route('pajak.export-excel', ['bulan' => request('bulan')]) }}" class="btn btn-success mb-2">
     Cetak Excel
 </a>
-
 <div class="table-responsive">
     <table class="table table-striped table-bordered text-nowrap">
         <thead class="thead-dark">

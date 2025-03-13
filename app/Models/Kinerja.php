@@ -15,6 +15,7 @@ class Kinerja extends Model
         'user_id',
         'tunjangan_jabatan',
         'tunjangan_masa_kerja',
+        'potongan',
         'bulan',
     ];
 

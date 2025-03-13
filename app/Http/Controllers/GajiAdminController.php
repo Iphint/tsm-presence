@@ -139,17 +139,21 @@ class GajiAdminController extends Controller
     private function simpanKinerjaBulanan($user, $jabatan, $tunjanganMasaKerja)
     {
         $bulan = Carbon::now()->format('Y-m');
-        $existingKinerja = Kinerja::where('user_id', $user->id)
-            ->where('bulan', $bulan)
-            ->first();
-
-        if (!$existingKinerja) {
-            Kinerja::create([
+        $kinerja = Kinerja::firstOrCreate(
+            [
                 'user_id' => $user->id,
+                'bulan' => $bulan
+            ],
+            [
                 'tunjangan_jabatan' => $jabatan->tunjangan_jabatan ?? 0,
                 'tunjangan_masa_kerja' => $tunjanganMasaKerja,
-                'bulan' => $bulan
-            ]);
-        }
+                'potongan' => 0
+            ]
+        );
+        $kinerja->update([
+            'tunjangan_jabatan' => $jabatan->tunjangan_jabatan ?? 0,
+            'tunjangan_masa_kerja' => $tunjanganMasaKerja,
+            'potongan' => $kinerja->potongan ?? 0
+        ]);
     }
 }

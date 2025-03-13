@@ -32,6 +32,7 @@ class User extends Authenticatable
         'ketenagakerjaan',
         'alamat',
         'ptkp',
+        'no_rek',
     ];
 
     /**

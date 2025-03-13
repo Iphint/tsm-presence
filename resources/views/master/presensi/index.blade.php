@@ -28,6 +28,8 @@
                     <th style="width: 10%;">Masuk</th>
                     <th style="width: 10%;">Pulang</th>
                     <th style="width: 10%;">Status</th>
+                    <th style="width: 10%;">Total Jam Kerja</th>
+                    <th style="width: 10%;">Shift</th>
                     <th style="width: 10%;">Lokasi</th>
                     <th style="width: 10%;">Keterangan</th>
                     <th style="width: 10%;">Status Verifikasi</th>
@@ -53,6 +55,8 @@
                         <span class="badge badge-danger">{{ ucfirst($presence->status) }}</span>
                         @endif
                     </td>
+                    <td class="text-center">{{ $presence->totalWorkTime }}</td>
+                    <td class="text-center">{{ $presence->shift }}</td>
                     <td class="text-center">
                         @if($presence->location)
                         @php
