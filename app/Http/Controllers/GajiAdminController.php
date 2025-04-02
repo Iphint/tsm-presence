@@ -8,13 +8,13 @@ use App\Models\Kinerja;
 use App\Models\Lembur;
 use App\Models\Presence;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class GajiAdminController extends Controller
 {
     private const TUNJANGAN_PER_TAHUN = 50000;
+    private const MAX_TAHUN = 4;
 
     public function index()
     {
@@ -121,7 +121,8 @@ class GajiAdminController extends Controller
             $bulanKerja = $tanggalMulai->diffInMonths($tanggalSekarang);
             $tahunKerja = floor($bulanKerja / 12);
 
-            return $tahunKerja;
+            // Batasi maksimal masa kerja sesuai dengan MAX_TAHUN
+            return min($tahunKerja, self::MAX_TAHUN);
         } catch (\Throwable $th) {
             Log::error("Gagal mem-parse tanggal mulai kerja: " . $duration . " - " . $th->getMessage());
             return 0;
@@ -129,7 +130,7 @@ class GajiAdminController extends Controller
     }
     private function hitungTunjanganMasaKerja($tahun)
     {
-        $tahunPenuh = min(floor($tahun), 3);
+        $tahunPenuh = min((int) $tahun, self::MAX_TAHUN);
         return $tahunPenuh * self::TUNJANGAN_PER_TAHUN;
     }
     public function print()

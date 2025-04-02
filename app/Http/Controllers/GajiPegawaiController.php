@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 class GajiPegawaiController extends Controller
 {
     private const TUNJANGAN_PER_TAHUN = 50000;
+    private const MAX_TAHUN = 4;
 
     public function index()
     {
@@ -24,75 +25,75 @@ class GajiPegawaiController extends Controller
         $gajiPokok = $jabatan ? $jabatan->gaji_pokok : 0;
         $gajiHarian = $gajiPokok / 26;
         $bulanSekarang = Carbon::now()->format('Y-m');
-    
+
         // Ambil data kinerja user
         $kinerja = Kinerja::where('user_id', $user->id)->where('bulan', $bulanSekarang)->first();
         $tunjanganJabatan = $kinerja ? $kinerja->tunjangan_jabatan : 0;
-        $potongan = $kinerja ? $kinerja->potongan : 0; 
-    
+        $potongan = $kinerja ? $kinerja->potongan : 0;
+
         // Hitung tunjangan masa kerja
         $masaKerjaTahun = $this->hitungMasaKerjaTahun($user->duration);
         $tunjanganMasaKerja = $this->hitungTunjanganMasaKerja($masaKerjaTahun);
-    
+
         // Hitung jumlah hari kerja
         $workedDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->selectRaw('DATE(pulang) as work_day')
             ->distinct()
             ->count();
-    
+
         $masukDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->where('status', 'masuk')
             ->selectRaw('DATE(pulang) as work_day')
             ->distinct()
             ->count();
-    
+
         $izinDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->where('status', 'izin')
             ->selectRaw('DATE(pulang) as work_day')
             ->distinct()
             ->count();
-    
+
         $absentDays = Presence::where('user_id', $user->id)
             ->whereBetween('pulang', [$startOfMonth, $endOfMonth])
             ->where('status', 'absent')
             ->selectRaw('DATE(pulang) as work_day')
             ->distinct()
             ->count();
-    
+
         // Hitung gaji pokok berdasarkan hari kerja
         $salary = $workedDays * $gajiHarian;
-    
+
         // Hitung lembur
         $lemburan = Lembur::where('user_id', $user->id)
             ->whereMonth('tanggal', $startOfMonth->month)
             ->whereYear('tanggal', $startOfMonth->year)
             ->where('action', 'approved')
             ->get();
-    
+
         $totalJamLembur = 0;
         foreach ($lemburan as $lembur) {
             $start = Carbon::createFromFormat('H:i:s', $lembur->start_lembur);
             $end = Carbon::createFromFormat('H:i:s', $lembur->selesai_lembur);
-    
+
             if ($end->format('H:i:s') === '00:00:00') {
                 $end = Carbon::createFromFormat('H:i:s', '24:00:00');
             }
-    
+
             $jamLembur = abs($end->diffInHours($start));
             $totalJamLembur += $jamLembur;
         }
-    
+
         $totalGajiLembur = $lemburan->sum('salary_lembur');
-    
+
         // Hitung total gaji termasuk potongan
         $totalGaji = $salary + $tunjanganMasaKerja - $potongan;
-    
+
         // Simpan/update data ke kinerja bulanan
         $this->simpanKinerjaBulanan($user, $jabatan, $tunjanganMasaKerja);
-    
+
         return view('pegawai.gaji.index', compact(
             'workedDays',
             'tunjanganMasaKerja',
@@ -120,15 +121,17 @@ class GajiPegawaiController extends Controller
             $bulanKerja = $tanggalMulai->diffInMonths($tanggalSekarang);
             $tahunKerja = floor($bulanKerja / 12);
 
-            return $tahunKerja;
+            // Batasi maksimal masa kerja sesuai dengan MAX_TAHUN
+            return min($tahunKerja, self::MAX_TAHUN);
         } catch (\Throwable $th) {
             Log::error("Gagal mem-parse tanggal mulai kerja: " . $duration . " - " . $th->getMessage());
             return 0;
         }
     }
+
     private function hitungTunjanganMasaKerja($tahun)
     {
-        $tahunPenuh = min(floor($tahun), 3);
+        $tahunPenuh = min(floor($tahun), self::MAX_TAHUN);
         return $tahunPenuh * self::TUNJANGAN_PER_TAHUN;
     }
     public function print()
@@ -151,7 +154,7 @@ class GajiPegawaiController extends Controller
 
         $tunjanganJabatan = $kinerja ? $kinerja->tunjangan_jabatan : 0;
         $tunjanganMasaKerja = $kinerja ? $kinerja->tunjangan_masa_kerja : 0;
-        $potongan = $kinerja ? $kinerja->potongan : 0; 
+        $potongan = $kinerja ? $kinerja->potongan : 0;
 
         $jabatan = Jabatan::where('nama_jabatan', $user->posisi)->first();
         $gajiPokok = $jabatan ? $jabatan->gaji_pokok : 0;

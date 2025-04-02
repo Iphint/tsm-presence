@@ -24,7 +24,6 @@ class GajiMasterController extends Controller
         $startOfMonth = Carbon::parse($bulan)->startOfMonth();
         $endOfMonth = Carbon::parse($bulan)->endOfMonth();
 
-        // Ambil karyawan yang bukan master_admin dan sesuai outlet (jika ada filter)
         $karyawans = User::where('role', '!=', 'master_admin')
             ->when($outlet, function ($query) use ($outlet) {
                 return $query->where('outlet_cabang', 'LIKE', "%$outlet%");

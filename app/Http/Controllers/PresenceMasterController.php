@@ -34,13 +34,10 @@ class PresenceMasterController extends Controller
         }
     
         $presences = $query->paginate(50);
-    
-        // **Tambahkan perhitungan total jam kerja & shift kerja**
+        
         foreach ($presences as $presence) {
             $datang = $presence->datang ? Carbon::parse($presence->datang) : null;
             $pulang = $presence->pulang ? Carbon::parse($presence->pulang) : null;
-            
-            // **Hitung total menit kerja**
             if ($datang && $pulang) {
                 $totalMinutes = $datang->diffInMinutes($pulang);
             } elseif ($datang) {
@@ -52,8 +49,7 @@ class PresenceMasterController extends Controller
             $totalHours = intdiv($totalMinutes, 60);
             $totalRemainingMinutes = $totalMinutes % 60;
             $presence->totalWorkTime = "{$totalHours} Jam {$totalRemainingMinutes} Menit";
-    
-            // **Tentukan shift kerja berdasarkan jam datang**
+
             if ($datang) {
                 $hour = $datang->hour;
                 if ($hour >= 6 && $hour < 14) {
@@ -67,7 +63,6 @@ class PresenceMasterController extends Controller
                 $shift = "Tidak Diketahui";
             }
     
-            // Simpan dalam objek presence
             $presence->shift = $shift;
         }
     
@@ -114,7 +109,6 @@ class PresenceMasterController extends Controller
             ['gaji' => $gajiHarian]
         );
 
-        // Tandai sebagai diverifikasi
         $presence->verified = true;
         $presence->save();
 

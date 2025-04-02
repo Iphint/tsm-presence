@@ -74,7 +74,6 @@ Route::middleware(['auth', 'role:pegawai'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    // Arrival specific routes
     Route::get('/presence/create', [PresencePegawaiController::class, 'create'])->name('presence.create');
     Route::post('/presence-pegawai/mark-arrival', [PresencePegawaiController::class, 'markArrival'])->name('presence.mark-arrival');
     Route::post('/presence-pegawai/mark-departure', [PresencePegawaiController::class, 'markDeparture'])->name('presence.mark-departure');

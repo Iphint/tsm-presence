@@ -4,14 +4,21 @@
 
 @section('content')
 <div class="container-fluid">
-
-    <!-- Page Heading -->
-    <div class="d-flex justify-content-between my-2">
-        <h1 class="h3 mb-2 text-gray-800">Data Presensi</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 my-3">
+        <h1 class="h3 text-gray-800">Data Presensi</h1>
         @if (auth()->user()->role === 'master_admin')
         <button type="button" class="btn btn-outline-secondary">Print</button>
         @else
-        <a href="{{ route('presence.create') }}" class="btn btn-outline-secondary">Presensi</a>
+        <div class="w-100 w-md-auto d-flex flex-column flex-md-row align-items-start gap-2">
+            <form action="{{ route('presence-admin.index') }}" method="GET" class="d-flex flex-wrap gap-2">
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari..." value="{{ request('search') }}">
+                <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Cari</button>
+            </form>
+        </div>
+        <div class="w-56 w-md-auto">
+            <a href="{{ route('presence.create') }}" class="btn btn-primary w-100 w-md-auto">Presensi</a>
+        </div>
         @endif
     </div>
 
